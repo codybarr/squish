@@ -1,0 +1,29 @@
+{
+  "name": "squish",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun scripts/build-codecs.ts .squish && bun --hot index.ts",
+    "start": "bun index.ts",
+    "build": "bun scripts/build-codecs.ts dist && bun build ./index.html --outdir=dist --target=browser"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@jsquash/avif": "^2.1.1",
+    "@jsquash/jpeg": "^1.6.0",
+    "@jsquash/oxipng": "^2.3.0",
+    "@jsquash/png": "^3.1.1",
+    "@jsquash/resize": "^2.1.1",
+    "@jsquash/webp": "^1.5.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  }
+}
