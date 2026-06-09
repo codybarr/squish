@@ -45,4 +45,13 @@ for (const root of assetRoots) {
   }
 }
 
+const forcedAssets = [
+  "node_modules/@jsquash/oxipng/codec/pkg-parallel/squoosh_oxipng_bg.wasm",
+  "node_modules/@jsquash/oxipng/codec/pkg-parallel/snippets/wasm-bindgen-rayon-3e04391371ad0a8e/src/workerHelpers.worker.js",
+];
+
+for (const asset of forcedAssets) {
+  await copyFile(asset, join(outdir, basename(asset)));
+}
+
 console.log(`Built codec worker and WASM assets into ${outdir}`);
