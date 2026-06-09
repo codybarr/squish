@@ -1,4 +1,4 @@
-import { mkdir, readdir, copyFile } from "node:fs/promises";
+import { mkdir, readdir, copyFile, rm } from "node:fs/promises";
 import { join, basename } from "node:path";
 
 const outdir = process.argv[2] ?? ".squish";
@@ -14,6 +14,7 @@ async function walk(dir: string): Promise<string[]> {
   return files.flat();
 }
 
+await rm(outdir, { recursive: true, force: true });
 await mkdir(outdir, { recursive: true });
 
 const result = await Bun.build({
@@ -32,7 +33,6 @@ if (!result.success) {
 const assetRoots = [
   "node_modules/@jsquash/jpeg",
   "node_modules/@jsquash/png",
-  "node_modules/@jsquash/oxipng",
   "node_modules/@jsquash/webp",
   "node_modules/@jsquash/avif",
   "node_modules/@jsquash/resize",
@@ -43,15 +43,6 @@ for (const root of assetRoots) {
   for (const asset of assets) {
     await copyFile(asset, join(outdir, basename(asset)));
   }
-}
-
-const forcedAssets = [
-  "node_modules/@jsquash/oxipng/codec/pkg-parallel/squoosh_oxipng_bg.wasm",
-  "node_modules/@jsquash/oxipng/codec/pkg-parallel/snippets/wasm-bindgen-rayon-3e04391371ad0a8e/src/workerHelpers.worker.js",
-];
-
-for (const asset of forcedAssets) {
-  await copyFile(asset, join(outdir, basename(asset)));
 }
 
 console.log(`Built codec worker and WASM assets into ${outdir}`);

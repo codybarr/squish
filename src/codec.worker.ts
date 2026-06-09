@@ -1,6 +1,5 @@
 import { decode as decodeJpeg, encode as encodeJpeg } from "@jsquash/jpeg";
 import { decode as decodePng, encode as encodePng } from "@jsquash/png";
-import { optimise as optimisePng } from "@jsquash/oxipng";
 import { decode as decodeWebp, encode as encodeWebp } from "@jsquash/webp";
 import { decode as decodeAvif, encode as encodeAvif } from "@jsquash/avif";
 import resize from "@jsquash/resize";
@@ -104,10 +103,8 @@ async function encode(image: ImageData, format: OutputFormat): Promise<ArrayBuff
         trellis_opt_table: true,
         auto_subsample: true,
       });
-    case "png": {
-      const png = await encodePng(image);
-      return optimisePng(png, { level: 4, optimiseAlpha: true, interlace: false });
-    }
+    case "png":
+      return encodePng(image);
     case "webp":
       return encodeWebp(image, { quality: 78, method: 6, pass: 6, sns_strength: 80 });
     case "avif":
