@@ -39,7 +39,9 @@ const assetRoots = [
 ];
 
 for (const root of assetRoots) {
-  const assets = (await walk(root)).filter((file) => /\.(wasm|mjs)$/.test(file));
+  const assets = (await walk(root)).filter(
+    (file) => /\.(wasm|mjs)$/.test(file) || basename(file) === "avif_enc_mt.js",
+  );
   for (const asset of assets) {
     await copyFile(asset, join(outdir, basename(asset)));
   }

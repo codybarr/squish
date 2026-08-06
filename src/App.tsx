@@ -81,6 +81,7 @@ function App() {
   const workerRef = useRef<Worker | null>(null);
   const queueRef = useRef<string[]>([]);
   const activeRef = useRef(false);
+  const activeIdRef = useRef<string | null>(null);
   const itemsRef = useRef<Item[]>([]);
   const settingsRef = useRef({
     format,
@@ -96,44 +97,88 @@ function App() {
   }, [items]);
 
   useEffect(() => {
-    const worker = new Worker("/codec.worker.js", { type: "module" });
-    workerRef.current = worker;
+    let disposed = false;
 
-    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-      const data = event.data;
-      if (data.type === "done") {
-        const outputUrl = URL.createObjectURL(data.blob);
-        setItems((current) =>
-          current.map((item) => {
-            if (item.id !== data.id) return item;
-            if (item.outputUrl) URL.revokeObjectURL(item.outputUrl);
-            return {
-              ...item,
-              status: "done",
-              outputUrl,
-              outputName: data.outputName,
-              outputBytes: data.outputBytes,
-              originalBytes: data.originalBytes,
-              width: data.width,
-              height: data.height,
-            };
-          }),
+    const createWorker = () => {
+      const worker = new Worker("/codec.worker.js", { type: "module" });
+
+      worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+        const data = event.data;
+        if (data.type === "done") {
+          const outputUrl = URL.createObjectURL(data.blob);
+          setItems((current) =>
+            current.map((item) => {
+              if (item.id !== data.id) return item;
+              if (item.outputUrl) URL.revokeObjectURL(item.outputUrl);
+              return {
+                ...item,
+                status: "done",
+                outputUrl,
+                outputName: data.outputName,
+                outputBytes: data.outputBytes,
+                originalBytes: data.originalBytes,
+                width: data.width,
+                height: data.height,
+              };
+            }),
+          );
+        } else {
+          setItems((current) =>
+            current.map((item) =>
+              item.id === data.id
+                ? { ...item, status: "error", error: data.message }
+                : item,
+            ),
+          );
+        }
+        activeRef.current = false;
+        activeIdRef.current = null;
+        runNext();
+      };
+
+      const handleWorkerFailure = (message: string) => {
+        if (workerRef.current !== worker) return;
+
+        const failedId = activeIdRef.current;
+        if (failedId) {
+          setItems((current) =>
+            current.map((item) =>
+              item.id === failedId
+                ? { ...item, status: "error", error: message }
+                : item,
+            ),
+          );
+        }
+
+        activeRef.current = false;
+        activeIdRef.current = null;
+        worker.terminate();
+
+        if (!disposed && failedId) {
+          workerRef.current = createWorker();
+          window.setTimeout(runNext, 0);
+        } else {
+          workerRef.current = null;
+        }
+      };
+
+      worker.onerror = (event) => {
+        event.preventDefault();
+        handleWorkerFailure(
+          event.message || "The image codec worker crashed unexpectedly.",
         );
-      } else {
-        setItems((current) =>
-          current.map((item) =>
-            item.id === data.id
-              ? { ...item, status: "error", error: data.message }
-              : item,
-          ),
-        );
-      }
-      activeRef.current = false;
-      runNext();
+      };
+      worker.onmessageerror = () =>
+        handleWorkerFailure("The image codec returned an unreadable response.");
+
+      return worker;
     };
 
+    workerRef.current = createWorker();
+
     return () => {
-      worker.terminate();
+      disposed = true;
+      workerRef.current?.terminate();
       workerRef.current = null;
       itemsRef.current.forEach((item) => {
         URL.revokeObjectURL(item.originalUrl);
@@ -163,6 +208,7 @@ function App() {
     if (!item) return runNext();
 
     activeRef.current = true;
+    activeIdRef.current = nextId;
     setItems((current) =>
       current.map((candidate) =>
         candidate.id === nextId
@@ -201,6 +247,7 @@ function App() {
         ),
       );
       activeRef.current = false;
+      activeIdRef.current = null;
       runNext();
     }
   }, []);
@@ -252,6 +299,7 @@ function App() {
   const clearAll = useCallback(() => {
     queueRef.current = [];
     activeRef.current = false;
+    activeIdRef.current = null;
     setItems((current) => {
       current.forEach((item) => {
         URL.revokeObjectURL(item.originalUrl);
