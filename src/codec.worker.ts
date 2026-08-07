@@ -1,5 +1,8 @@
 import { decode as decodeJpeg, encode as encodeJpeg } from "@jsquash/jpeg";
-import { decode as decodePng, encode as encodePng } from "@jsquash/png";
+import { decode as decodePng } from "@jsquash/png";
+import initOxiPng, {
+  optimise_raw as optimisePngRaw,
+} from "@jsquash/oxipng/codec/pkg/squoosh_oxipng.js";
 import { decode as decodeWebp, encode as encodeWebp } from "@jsquash/webp";
 import { decode as decodeAvif, encode as encodeAvif } from "@jsquash/avif";
 import resize from "@jsquash/resize";
@@ -89,6 +92,27 @@ function flattenForJpeg(image: ImageData): ImageData {
     out[i + 3] = 255;
   }
   return new ImageData(out, image.width, image.height);
+}
+
+const pngOptions = {
+  level: 3,
+  interlace: false,
+  optimiseAlpha: false,
+} as const;
+
+let oxiPngReady: Promise<unknown> | undefined;
+
+async function encodePng(image: ImageData): Promise<ArrayBuffer> {
+  oxiPngReady ??= initOxiPng();
+  await oxiPngReady;
+  return optimisePngRaw(
+    image.data,
+    image.width,
+    image.height,
+    pngOptions.level,
+    pngOptions.interlace,
+    pngOptions.optimiseAlpha,
+  ).buffer as ArrayBuffer;
 }
 
 async function encode(image: ImageData, format: OutputFormat): Promise<ArrayBuffer> {

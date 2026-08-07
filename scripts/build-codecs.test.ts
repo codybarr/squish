@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-test("copies every AVIF pthread runtime dependency", async () => {
+test("copies codec runtime dependencies", async () => {
   const outdir = await mkdtemp(join(tmpdir(), "squish-codecs-"));
 
   try {
@@ -19,6 +19,7 @@ test("copies every AVIF pthread runtime dependency", async () => {
     expect(pthreadWorker).toContain('import("./avif_enc_mt.js")');
     expect(await Bun.file(join(outdir, "avif_enc_mt.js")).exists()).toBe(true);
     expect(await Bun.file(join(outdir, "avif_enc_mt.wasm")).exists()).toBe(true);
+    expect(await Bun.file(join(outdir, "squoosh_oxipng_bg.wasm")).exists()).toBe(true);
   } finally {
     await rm(outdir, { recursive: true, force: true });
   }

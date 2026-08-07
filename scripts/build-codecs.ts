@@ -33,6 +33,7 @@ if (!result.success) {
 const assetRoots = [
   "node_modules/@jsquash/jpeg",
   "node_modules/@jsquash/png",
+  "node_modules/@jsquash/oxipng/codec/pkg",
   "node_modules/@jsquash/webp",
   "node_modules/@jsquash/avif",
   "node_modules/@jsquash/resize",
