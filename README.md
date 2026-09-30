@@ -1,5 +1,9 @@
 # Squish
 
+<p align="center">
+  <img src="./favicon.svg" alt="Squish logo" width="200" height="200">
+</p>
+
 A private, browser-only image compressor inspired by Squoosh with bulk upload as the primary workflow.
 
 ## Features
