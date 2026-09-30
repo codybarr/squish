@@ -9,7 +9,7 @@ A private, browser-only image compressor inspired by Squoosh with bulk upload as
 - Convert freely between PNG, JPG, AVIF, and WebP
 - Opinionated compression defaults, no quality sliders
 - Optional resize by width/height with aspect-ratio lock enabled by default
-- One-click per-file downloads and staggered download-all for finished files
+- One-click per-file downloads and a single ZIP download for finished files, created entirely in the browser
 
 ## Development
 
